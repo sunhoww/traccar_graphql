@@ -11,5 +11,7 @@ setup(
         'graphene',
         'flask_graphql',
         'requests',
+        'flask-jwt-extended',
+        'iso8601'
     ],
 )
