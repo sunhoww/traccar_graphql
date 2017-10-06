@@ -2,7 +2,8 @@ import os, graphene, requests
 from flask_jwt_extended import get_jwt_identity, get_jwt_claims
 from graphql import GraphQLError
 
-from traccar_graphql.models import ServerType, UserType, LoginType, RegisterType
+from traccar_graphql.models import ServerType, UserType
+from traccar_graphql.mutations import LoginType, RegisterType
 from traccar_graphql.utils import request2object
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
