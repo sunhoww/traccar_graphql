@@ -1,4 +1,4 @@
-import os, requests
+import os, requests, datetime
 from graphene import Interface, ObjectType, Mutation, String, Boolean, Int, Float, Field
 from graphene.types.datetime import DateTime
 from graphql import GraphQLError
@@ -9,37 +9,43 @@ from traccar_graphql.utils import request2object
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
 
 class SettingsType(Interface):
-    readonly = Boolean()
-    device_readonly = Boolean()
+    id = Int()
     map = Boolean()
     latitude = Float()
     longitude = Float()
     zoom = Int()
+    readonly = Boolean()
+    device_readonly = Boolean()
+    distance_unit = String()
+    speed_unit = String()
+    timezone = String()
     twelve_hour_format = Boolean()
     coordinate_format = String()
-    limit_commands = Boolean()
 
 class ServerType(ObjectType):
     class Meta:
         interfaces = (SettingsType, )
+
     version = String()
-    registration = Boolean()
-    bing_key = String()
     map_url = String()
+    registration = Boolean()
     force_settings = Boolean()
+    bing_key = String()
+    limit_commands = Boolean()
 
 class UserType(ObjectType):
     class Meta:
         interfaces = (SettingsType, )
-    name = String()
+
     email = String()
+    name = String()
     phone = String()
+    password = String()
     admin = Boolean()
     disabled = Boolean()
-    expiration_time = DateTime()
-    device_limit = Int()
     user_limit = Int()
-
+    device_limit = Int()
+    expiration_time = DateTime()
     token = String()
 
 class _Indentity():
@@ -69,7 +75,9 @@ class LoginType(Mutation):
             admin=data['admin'],
             session=r.headers['Set-Cookie']
         )
-        access_token = create_access_token(identity=identity)
+
+        # TODO: remove expires_delta
+        access_token = create_access_token(identity=identity, expires_delta=datetime.timedelta(days=7))
         return LoginType(access_token)
 
 class RegisterType(Mutation):
