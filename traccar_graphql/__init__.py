@@ -1,7 +1,8 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from flask_graphql import GraphQLView
 from flask_jwt_extended import JWTManager, jwt_optional
+from graphql import GraphQLError
 
 from traccar_graphql.schema import schema
 
@@ -24,6 +25,14 @@ def add_claims_to_access_token(identity):
 @jwt.user_identity_loader
 def make_identity_for_access_token(identity):
     return identity.email
+
+@jwt.expired_token_loader
+def handle_expired_token_error():
+    return jsonify({ 'errors': [{ 'message': "Token has expired" }] })
+
+@jwt.invalid_token_loader
+def handle_invalid_token_error(msg):
+    return jsonify({ 'errors': [{ 'message': msg }] })
 
 view_func = GraphQLView.as_view(
     'graphql',
