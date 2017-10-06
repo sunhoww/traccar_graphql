@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_graphql import GraphQLView
 from flask_jwt_extended import JWTManager, jwt_optional
@@ -8,8 +9,7 @@ __version__ = '0.0.1'
 
 app = Flask(__name__)
 
-# TODO: generate key
-app.secret_key = 'super-secret'
+app.secret_key = os.environ.get('JWT_SECRET')
 
 jwt = JWTManager(app)
 
