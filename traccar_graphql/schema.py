@@ -10,16 +10,19 @@ TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
 
 class Query(graphene.ObjectType):
     server = graphene.Field(lambda: ServerType)
-    me = graphene.Field(lambda: UserType)
     def resolve_server(self, args, context, info):
         r = requests.get("{}/api/server".format(TRACCAR_BACKEND))
         return request2object(r, 'ServerType')
+
+    me = graphene.Field(lambda: UserType)
     def resolve_me(self, args, context, info):
         claims = get_jwt_claims()
         if 'session' not in claims:
             raise GraphQLError('Authentication required')
         headers = { 'Cookie': claims['session'] }
         r = requests.get("{}/api/session".format(TRACCAR_BACKEND), headers=headers)
+        if r.status_code == 404:
+            raise GraphQLError('Authentication required')
         return request2object(r, 'UserType')
 
 class Mutation(graphene.ObjectType):
