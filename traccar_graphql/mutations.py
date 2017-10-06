@@ -17,8 +17,8 @@ class _Indentity():
 
 class LoginType(Mutation):
     class Input:
-        email = String()
-        password = String()
+        email = String(required=True)
+        password = String(required=True)
 
     access_token = String()
 
@@ -38,13 +38,13 @@ class LoginType(Mutation):
 
         # TODO: remove expires_delta
         access_token = create_access_token(identity=identity, expires_delta=datetime.timedelta(days=7))
-        return LoginType(access_token)
+        return LoginType(access_token=access_token)
 
 class RegisterType(Mutation):
     class Input:
-        email = String(description="Used to sign in")
+        email = String(description="Used to sign in", required=True)
         name = String()
-        password = String()
+        password = String(required=True)
 
     user = Field(lambda: UserType)
 
