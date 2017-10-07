@@ -56,3 +56,18 @@ class DriverType(ObjectType):
     id = Int()
     name = String()
     unique_id = String()
+
+class GeofenceType(ObjectType):
+    id = Int()
+    name = String()
+    description = String()
+    area = String()
+    calendar = Int()
+
+    def resolve_calendar(self, args, context, info):
+        return self.calendar_id
+
+class CalendarType(ObjectType):
+    id = Int()
+    name = String()
+    data = String()

@@ -2,7 +2,7 @@ import os, requests, datetime
 from graphene import Mutation, InputObjectType, String, Field, Int, Argument
 from graphql import GraphQLError
 
-from traccar_graphql.models import UserType, GroupType, DriverType
+from traccar_graphql import models
 from traccar_graphql.utils import request2object, camelify_keys, header_with_auth
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
@@ -44,7 +44,7 @@ class RegisterType(Mutation):
         name = String()
         password = String(required=True)
 
-    user = Field(lambda: UserType)
+    user = Field(lambda: models.UserType)
 
     def mutate(self, input, context, info):
         r = requests.post("{}/api/users".format(TRACCAR_BACKEND), json=input)
@@ -61,7 +61,7 @@ class CreateGroupType(Mutation):
     class Input:
         input = Argument(lambda: GroupInput)
 
-    group = Field(lambda: GroupType)
+    group = Field(lambda: models.GroupType)
 
     def mutate(self, args, context, info):
         r = requests.post(
@@ -75,7 +75,7 @@ class UpdateGroupType(Mutation):
         id = Int(required=True)
         input = Argument(lambda: GroupInput)
 
-    group = Field(lambda: GroupType)
+    group = Field(lambda: models.GroupType)
 
     def mutate(self, args, context, info):
         patch = camelify_keys(args.get('input'))
@@ -105,10 +105,9 @@ class CreateDriverType(Mutation):
     class Input:
         input = Argument(lambda: DriverInput)
 
-    driver = Field(lambda: DriverType)
+    driver = Field(lambda: models.DriverType)
 
     def mutate(self, args, context, info):
-        print(camelify_keys(args.get('input')))
         r = requests.post(
             "{}/api/drivers".format(TRACCAR_BACKEND),
             headers=header_with_auth(),
@@ -120,7 +119,7 @@ class UpdateDriverType(Mutation):
         id = Int(required=True)
         input = Argument(lambda: DriverInput)
 
-    driver = Field(lambda: DriverType)
+    driver = Field(lambda: models.DriverType)
 
     def mutate(self, args, context, info):
         patch = camelify_keys(args.get('input'))
@@ -141,3 +140,95 @@ class DeleteDriverType(Mutation):
             "{}/api/drivers/{}".format(TRACCAR_BACKEND, args.get('id')),
             headers=header_with_auth())
         return DeleteDriverType(id=args.get('id'))
+
+class GeofenceInput(InputObjectType):
+    name = String()
+    description = String()
+    area = String()
+    calendar_id = Int()
+
+class CreateGeofenceType(Mutation):
+    class Input:
+        input = Argument(lambda: GeofenceInput)
+
+    geofence = Field(lambda: models.GeofenceType)
+
+    def mutate(self, args, context, info):
+        r = requests.post(
+            "{}/api/geofences".format(TRACCAR_BACKEND),
+            headers=header_with_auth(),
+            json=camelify_keys(args.get('input')))
+        return CreateGeofenceType(geofence=request2object(r, 'GeofenceInput'))
+
+class UpdateGeofenceType(Mutation):
+    class Input:
+        id = Int(required=True)
+        input = Argument(lambda: GeofenceInput)
+
+    geofence = Field(lambda: models.GeofenceType)
+
+    def mutate(self, args, context, info):
+        patch = camelify_keys(args.get('input'))
+        patch['id'] = args.get('id')
+        r = requests.put(
+            "{}/api/geofences/{}".format(TRACCAR_BACKEND, patch['id']),
+            headers=header_with_auth(),
+            json=patch)
+        return UpdateGeofenceType(geofence=request2object(r, 'GeofenceInput'))
+
+class DeleteGeofenceType(Mutation):
+    class Input:
+        id = Int(required=True)
+
+    id = Int()
+    def mutate(self, args, context, info):
+        r = requests.delete(
+            "{}/api/geofences/{}".format(TRACCAR_BACKEND, args.get('id')),
+            headers=header_with_auth())
+        return DeleteGeofenceType(id=args.get('id'))
+
+class CalendarInput(InputObjectType):
+    name = String()
+    description = String()
+    area = String()
+    calendar_id = Int()
+
+class CreateCalendarType(Mutation):
+    class Input:
+        input = Argument(lambda: CalendarInput)
+
+    calendar = Field(lambda: models.CalendarType)
+
+    def mutate(self, args, context, info):
+        r = requests.post(
+            "{}/api/calendars".format(TRACCAR_BACKEND),
+            headers=header_with_auth(),
+            json=camelify_keys(args.get('input')))
+        return CreateCalendarType(geofence=request2object(r, 'CalendarInput'))
+
+class UpdateCalendarType(Mutation):
+    class Input:
+        id = Int(required=True)
+        input = Argument(lambda: CalendarInput)
+
+    calendar = Field(lambda: models.CalendarType)
+
+    def mutate(self, args, context, info):
+        patch = camelify_keys(args.get('input'))
+        patch['id'] = args.get('id')
+        r = requests.put(
+            "{}/api/calendars/{}".format(TRACCAR_BACKEND, patch['id']),
+            headers=header_with_auth(),
+            json=patch)
+        return UpdateCalendarType(geofence=request2object(r, 'CalendarInput'))
+
+class DeleteCalendarType(Mutation):
+    class Input:
+        id = Int(required=True)
+
+    id = Int()
+    def mutate(self, args, context, info):
+        r = requests.delete(
+            "{}/api/calendars/{}".format(TRACCAR_BACKEND, args.get('id')),
+            headers=header_with_auth())
+        return DeleteCalendarType(id=args.get('id'))
