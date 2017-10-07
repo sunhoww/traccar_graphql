@@ -13,10 +13,14 @@ itsdangerous==0.24
 Jinja2==2.9.6
 MarkupSafe==1.0
 promise==2.0.2
+py==1.4.34
 PyJWT==1.5.3
+pytest==3.2.3
 requests==2.18.4
 six==1.11.0
--e git+https://github.com/sunhoww/traccar_graphql.git@74061a5635ce47f90cc85e6529124d3f1fc145a7#egg=traccar_graphql
+snapshottest==0.5.0
+termcolor==1.1.0
+-e git+https://github.com/sunhoww/traccar_graphql.git@dd0f49f7f2e918b6035411508d633635959cf82b#egg=traccar_graphql
 typing==3.6.2
 urllib3==1.22
 Werkzeug==0.12.2
