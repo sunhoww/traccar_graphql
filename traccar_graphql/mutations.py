@@ -32,8 +32,7 @@ class LoginType(Mutation):
             id=data['id'],
             email=data['email'],
             admin=data['admin'],
-            session=r.headers['Set-Cookie']
-        )
+            session=r.headers['Set-Cookie'])
 
         # TODO: remove expires_delta
         access_token = create_access_token(identity=identity, expires_delta=datetime.timedelta(days=7))
@@ -68,8 +67,7 @@ class CreateGroupType(Mutation):
         r = requests.post(
             "{}/api/groups".format(TRACCAR_BACKEND),
             headers=header_with_auth(),
-            json=camelify_keys(args.get('input'))
-            )
+            json=camelify_keys(args.get('input')))
         return CreateGroupType(group=request2object(r, 'GroupType'))
 
 class UpdateGroupType(Mutation):
@@ -85,6 +83,16 @@ class UpdateGroupType(Mutation):
         r = requests.put(
             "{}/api/groups/{}".format(TRACCAR_BACKEND, patch['id']),
             headers=header_with_auth(),
-            json=patch
-            )
+            json=patch)
         return CreateGroupType(group=request2object(r, 'GroupType'))
+
+class DeleteGroupType(Mutation):
+    class Input:
+        id = Int(required=True)
+
+    id = Int()
+    def mutate(self, args, context, info):
+        r = requests.delete(
+            "{}/api/groups/{}".format(TRACCAR_BACKEND, args.get('id')),
+            headers=header_with_auth())
+        return DeleteGroupType(id=args.get('id'))

@@ -12,12 +12,9 @@ class GroupLoader(DataLoader):
     def batch_load_fn(self, keys):
         r = requests.get(
             "{}/api/groups".format(TRACCAR_BACKEND),
-            headers=header_with_auth()
-            )
+            headers=header_with_auth())
         groups = request2object(r, 'GroupType')
-        entities = []
-        for key in keys:
-            entities.append(next((x for x in groups if x.id == key), None))
+        entities = [next((x for x in groups if x.id == key), None) for key in keys]
         return Promise.resolve(entities)
 
 group_loader = GroupLoader()
