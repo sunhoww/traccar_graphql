@@ -4,17 +4,16 @@ from promise.dataloader import DataLoader
 from flask_jwt_extended import get_jwt_claims
 from graphql import GraphQLError
 
-from traccar_graphql.utils import request2object
+from traccar_graphql.utils import request2object, header_with_auth
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
 
 class GroupLoader(DataLoader):
     def batch_load_fn(self, keys):
-        claims = get_jwt_claims()
-        if 'session' not in claims:
-            raise GraphQLError('Authentication required')
-        headers = { 'Cookie': claims['session'] }
-        r = requests.get("{}/api/groups".format(TRACCAR_BACKEND), headers=headers)
+        r = requests.get(
+            "{}/api/groups".format(TRACCAR_BACKEND),
+            headers=header_with_auth()
+            )
         groups = request2object(r, 'GroupType')
         entities = []
         for key in keys:

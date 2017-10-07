@@ -20,3 +20,11 @@ def request2object(res, type='GenericType'):
     except ValueError as e:
         raise GraphQLError(res.text)
 
+
+from flask_jwt_extended import get_jwt_claims
+
+def header_with_auth():
+    claims = get_jwt_claims()
+    if 'session' not in claims:
+        raise GraphQLError('Authentication required')
+    return { 'Cookie': claims['session'] }
