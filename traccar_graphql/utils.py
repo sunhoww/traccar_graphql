@@ -28,3 +28,24 @@ def header_with_auth():
     if 'session' not in claims:
         raise GraphQLError('Authentication required')
     return { 'Cookie': claims['session'] }
+
+def _to_camels(key):
+    words = key.split('_')
+    return words[0] + ''.join(x.title() for x in words[1:])
+
+def camelify_keys(d):
+    camelized = {}
+    if isinstance(d, dict):
+        for k, v in d.items():
+            camelized[_to_camels(k)] = camelify_keys(v)
+    elif isinstance(d, list):
+        vlist = []
+        for v in d:
+            if isinstance(v, (list, dict)):
+                vlist.append(camelify_keys(v))
+            else:
+                vlist.append(v)
+        return vlist
+    else:
+        return d
+    return camelized
