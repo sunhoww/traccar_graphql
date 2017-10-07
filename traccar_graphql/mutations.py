@@ -2,7 +2,7 @@ import os, requests, datetime
 from graphene import Mutation, InputObjectType, String, Field, Int, Argument
 from graphql import GraphQLError
 
-from traccar_graphql.models import UserType, GroupType
+from traccar_graphql.models import UserType, GroupType, DriverType
 from traccar_graphql.utils import request2object, camelify_keys, header_with_auth
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
@@ -78,13 +78,13 @@ class UpdateGroupType(Mutation):
     group = Field(lambda: GroupType)
 
     def mutate(self, args, context, info):
-        patch = args.get('input')
+        patch = camelify_keys(args.get('input'))
         patch['id'] = args.get('id')
         r = requests.put(
             "{}/api/groups/{}".format(TRACCAR_BACKEND, patch['id']),
             headers=header_with_auth(),
             json=patch)
-        return CreateGroupType(group=request2object(r, 'GroupType'))
+        return UpdateGroupType(group=request2object(r, 'GroupType'))
 
 class DeleteGroupType(Mutation):
     class Input:
@@ -96,3 +96,48 @@ class DeleteGroupType(Mutation):
             "{}/api/groups/{}".format(TRACCAR_BACKEND, args.get('id')),
             headers=header_with_auth())
         return DeleteGroupType(id=args.get('id'))
+
+class DriverInput(InputObjectType):
+    name = String()
+    unique_id = String()
+
+class CreateDriverType(Mutation):
+    class Input:
+        input = Argument(lambda: DriverInput)
+
+    driver = Field(lambda: DriverType)
+
+    def mutate(self, args, context, info):
+        print(camelify_keys(args.get('input')))
+        r = requests.post(
+            "{}/api/drivers".format(TRACCAR_BACKEND),
+            headers=header_with_auth(),
+            json=camelify_keys(args.get('input')))
+        return CreateDriverType(driver=request2object(r, 'DriverInput'))
+
+class UpdateDriverType(Mutation):
+    class Input:
+        id = Int(required=True)
+        input = Argument(lambda: DriverInput)
+
+    driver = Field(lambda: DriverType)
+
+    def mutate(self, args, context, info):
+        patch = camelify_keys(args.get('input'))
+        patch['id'] = args.get('id')
+        r = requests.put(
+            "{}/api/drivers/{}".format(TRACCAR_BACKEND, patch['id']),
+            headers=header_with_auth(),
+            json=patch)
+        return UpdateDriverType(driver=request2object(r, 'DriverInput'))
+
+class DeleteDriverType(Mutation):
+    class Input:
+        id = Int(required=True)
+
+    id = Int()
+    def mutate(self, args, context, info):
+        r = requests.delete(
+            "{}/api/drivers/{}".format(TRACCAR_BACKEND, args.get('id')),
+            headers=header_with_auth())
+        return DeleteDriverType(id=args.get('id'))

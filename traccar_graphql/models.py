@@ -51,3 +51,8 @@ class GroupType(ObjectType):
 
     def resolve_parent_group(self, args, context, info):
         return group_loader.load(self.group_id)
+
+class DriverType(ObjectType):
+    id = Int()
+    name = String()
+    unique_id = String()

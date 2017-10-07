@@ -18,3 +18,14 @@ class GroupLoader(DataLoader):
         return Promise.resolve(entities)
 
 group_loader = GroupLoader()
+
+class DriverLoader(DataLoader):
+    def batch_load_fn(self, keys):
+        r = requests.get(
+            "{}/api/drivers".format(TRACCAR_BACKEND),
+            headers=header_with_auth())
+        drivers = request2object(r, 'GroupType')
+        entities = [next((x for x in drivers if x.id == key), None) for key in keys]
+        return Promise.resolve(entities)
+
+driver_loader = DriverLoader()
