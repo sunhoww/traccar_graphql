@@ -2,7 +2,7 @@ import requests
 from graphene import Interface, ObjectType, String, Boolean, Int, Float, Field
 from graphene.types.datetime import DateTime
 
-from traccar_graphql.resolvers import resolve_groups
+from traccar_graphql.loaders import group_loader
 
 class SettingsType(Interface):
     id = Int()
@@ -50,5 +50,4 @@ class GroupType(ObjectType):
     parent_group = Field(lambda: GroupType)
 
     def resolve_parent_group(self, args, context, info):
-        groups = resolve_groups(self, args, context, info)
-        return next((x for x in groups if x.id == self.group_id), None)
+        return group_loader.load(self.group_id)

@@ -4,7 +4,7 @@ from graphql import GraphQLError
 
 from traccar_graphql.models import ServerType, UserType, GroupType
 from traccar_graphql.mutations import LoginType, RegisterType
-from traccar_graphql.resolvers import resolve_groups
+from traccar_graphql.loaders import group_loader
 from traccar_graphql.utils import request2object
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
@@ -26,8 +26,19 @@ class Query(graphene.ObjectType):
             raise GraphQLError('Authentication required')
         return request2object(r, 'UserType')
 
+    group = graphene.Field(lambda: GroupType, id=graphene.Int())
+    def resolve_group(self, args, context, info):
+        return group_loader.load(args.get('id'))
+
+    # TODO: figure out a way for this to use the group_loader as well
     all_groups = graphene.List(lambda: GroupType)
-    resolve_all_groups = resolve_groups
+    def resolve_all_groups(self, args, context, info):
+        claims = get_jwt_claims()
+        if 'session' not in claims:
+            raise GraphQLError('Authentication required')
+        headers = { 'Cookie': claims['session'] }
+        r = requests.get("{}/api/groups".format(TRACCAR_BACKEND), headers=headers)
+        return request2object(r, 'GroupType')
 
 class Mutation(graphene.ObjectType):
     login = LoginType.Field()
