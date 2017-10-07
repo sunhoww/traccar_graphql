@@ -1,5 +1,6 @@
 import json, re
 from collections import namedtuple
+from graphql import GraphQLError
 
 _first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 _all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -14,4 +15,8 @@ def _object_hook(type):
     return hook
 
 def request2object(res, type='GenericType'):
-    return json.loads(res.text, object_hook=_object_hook(type))
+    try:
+        return json.loads(res.text, object_hook=_object_hook(type))
+    except ValueError as e:
+        raise GraphQLError(res.text)
+
