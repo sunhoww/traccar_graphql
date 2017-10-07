@@ -112,7 +112,7 @@ class CreateDriverType(Mutation):
             "{}/api/drivers".format(TRACCAR_BACKEND),
             headers=header_with_auth(),
             json=camelify_keys(args.get('input')))
-        return CreateDriverType(driver=request2object(r, 'DriverInput'))
+        return CreateDriverType(driver=request2object(r, 'DriverType'))
 
 class UpdateDriverType(Mutation):
     class Input:
@@ -128,7 +128,7 @@ class UpdateDriverType(Mutation):
             "{}/api/drivers/{}".format(TRACCAR_BACKEND, patch['id']),
             headers=header_with_auth(),
             json=patch)
-        return UpdateDriverType(driver=request2object(r, 'DriverInput'))
+        return UpdateDriverType(driver=request2object(r, 'DriverType'))
 
 class DeleteDriverType(Mutation):
     class Input:
@@ -158,7 +158,7 @@ class CreateGeofenceType(Mutation):
             "{}/api/geofences".format(TRACCAR_BACKEND),
             headers=header_with_auth(),
             json=camelify_keys(args.get('input')))
-        return CreateGeofenceType(geofence=request2object(r, 'GeofenceInput'))
+        return CreateGeofenceType(geofence=request2object(r, 'GeofenceType'))
 
 class UpdateGeofenceType(Mutation):
     class Input:
@@ -174,7 +174,7 @@ class UpdateGeofenceType(Mutation):
             "{}/api/geofences/{}".format(TRACCAR_BACKEND, patch['id']),
             headers=header_with_auth(),
             json=patch)
-        return UpdateGeofenceType(geofence=request2object(r, 'GeofenceInput'))
+        return UpdateGeofenceType(geofence=request2object(r, 'GeofenceType'))
 
 class DeleteGeofenceType(Mutation):
     class Input:
@@ -204,7 +204,7 @@ class CreateCalendarType(Mutation):
             "{}/api/calendars".format(TRACCAR_BACKEND),
             headers=header_with_auth(),
             json=camelify_keys(args.get('input')))
-        return CreateCalendarType(geofence=request2object(r, 'CalendarInput'))
+        return CreateCalendarType(calendar=request2object(r, 'CalendarType'))
 
 class UpdateCalendarType(Mutation):
     class Input:
@@ -220,7 +220,7 @@ class UpdateCalendarType(Mutation):
             "{}/api/calendars/{}".format(TRACCAR_BACKEND, patch['id']),
             headers=header_with_auth(),
             json=patch)
-        return UpdateCalendarType(geofence=request2object(r, 'CalendarInput'))
+        return UpdateCalendarType(calendar=request2object(r, 'CalendarType'))
 
 class DeleteCalendarType(Mutation):
     class Input:
@@ -232,3 +232,57 @@ class DeleteCalendarType(Mutation):
             "{}/api/calendars/{}".format(TRACCAR_BACKEND, args.get('id')),
             headers=header_with_auth())
         return DeleteCalendarType(id=args.get('id'))
+
+class NotificationInput(InputObjectType):
+    type = String()
+    user_id = Int()
+
+def _mutate_notification(service, state):
+    class holder_class(object):
+        def __init__(self, notification):
+            self.notification = notification
+    def fn(self, args, context, info):
+        patch = camelify_keys(args.get('input'))
+        patch[service] = state
+        r = requests.post(
+            "{}/api/users/notifications".format(TRACCAR_BACKEND),
+            headers=header_with_auth(),
+            json=patch)
+        return holder_class(notification=request2object(r, 'NotificationType'))
+    return fn
+
+class EnableWebNotificationType(Mutation):
+    class Input:
+        input = Argument(lambda: NotificationInput)
+    notification = Field(lambda: models.NotificationType)
+    mutate = _mutate_notification('web', True)
+
+class DisableWebNotificationType(Mutation):
+    class Input:
+        input = Argument(lambda: NotificationInput)
+    notification = Field(lambda: models.NotificationType)
+    mutate = _mutate_notification('web', False)
+
+class EnableEmailNotificationType(Mutation):
+    class Input:
+        input = Argument(lambda: NotificationInput)
+    notification = Field(lambda: models.NotificationType)
+    mutate = _mutate_notification('mail', True)
+
+class DisableEmailNotificationType(Mutation):
+    class Input:
+        input = Argument(lambda: NotificationInput)
+    notification = Field(lambda: models.NotificationType)
+    mutate = _mutate_notification('mail', False)
+
+class EnableSmsNotificationType(Mutation):
+    class Input:
+        input = Argument(lambda: NotificationInput)
+    notification = Field(lambda: models.NotificationType)
+    mutate = _mutate_notification('sms', True)
+
+class DisableSmsNotificationType(Mutation):
+    class Input:
+        input = Argument(lambda: NotificationInput)
+    notification = Field(lambda: models.NotificationType)
+    mutate = _mutate_notification('sms', False)

@@ -1,8 +1,8 @@
 import requests
-from graphene import Interface, ObjectType, String, Boolean, Int, Float, Field
+from graphene import Interface, ObjectType, String, Boolean, Int, Float, Field, List
 from graphene.types.datetime import DateTime
 
-from traccar_graphql.loaders import group_loader
+from traccar_graphql.loaders import group_loader, user_loader
 
 class SettingsType(Interface):
     id = Int()
@@ -71,3 +71,18 @@ class CalendarType(ObjectType):
     id = Int()
     name = String()
     data = String()
+
+class NotificationTypeType(ObjectType):
+    id = Int()
+    type = String()
+
+class NotificationType(ObjectType):
+    id = Int()
+    type = String()
+    user = Field(lambda: UserType)
+    web = Boolean()
+    mail = Boolean()
+    sms = Boolean()
+
+    def resolve_user(self, args, context, info):
+        return user_loader.load(self.user_id)

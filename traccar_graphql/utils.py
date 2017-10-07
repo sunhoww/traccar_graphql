@@ -20,7 +20,6 @@ def request2object(res, type='GenericType'):
     except ValueError as e:
         raise GraphQLError(res.text)
 
-
 from flask_jwt_extended import get_jwt_claims
 
 def header_with_auth():
@@ -28,6 +27,12 @@ def header_with_auth():
     if 'session' not in claims:
         raise GraphQLError('Authentication required')
     return { 'Cookie': claims['session'] }
+
+def current_user_id():
+    claims = get_jwt_claims()
+    if 'id' not in claims:
+        raise GraphQLError('Authentication required')
+    return claims['id']
 
 def _to_camels(key):
     words = key.split('_')
