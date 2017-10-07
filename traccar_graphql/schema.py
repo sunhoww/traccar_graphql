@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_claims
 from graphql import GraphQLError
 
 from traccar_graphql.models import ServerType, UserType, GroupType
-from traccar_graphql.mutations import LoginType, RegisterType, CreateGroupType
+from traccar_graphql.mutations import LoginType, RegisterType, CreateGroupType, UpdateGroupType
 from traccar_graphql.loaders import group_loader
 from traccar_graphql.utils import request2object, header_with_auth
 
@@ -42,5 +42,6 @@ class Mutation(graphene.ObjectType):
     login = LoginType.Field()
     register = RegisterType.Field()
     create_group = CreateGroupType.Field()
+    update_group = UpdateGroupType.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
