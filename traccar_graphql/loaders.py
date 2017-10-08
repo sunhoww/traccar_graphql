@@ -4,7 +4,8 @@ from promise.dataloader import DataLoader
 from flask_jwt_extended import get_jwt_claims
 from graphql import GraphQLError
 
-from traccar_graphql.utils import request2object, header_with_auth, current_user_id
+from traccar_graphql.utils import (
+    request2object, dict2object, camelify, camelify_keys, header_with_auth, current_user_id)
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
 
@@ -62,3 +63,25 @@ class UserLoader(DataLoader):
         entities = [Promise(_fetch_user(key)) for key in keys]
         return Promise.all(entities)
 user_loader = UserLoader()
+
+def device_loader(entity):
+    assert entity in ['id', 'unique_id']
+    class DeviceLoader(DataLoader):
+        def batch_load_fn(self, keys):
+            params={ camelify(entity): keys }
+            r = requests.get(
+                "{}/api/devices".format(TRACCAR_BACKEND),
+                params=params,
+                headers=header_with_auth())
+
+            entities = [next((dict2object(x) for x in r.json() if x[camelify(entity)] == key), None) for key in keys]
+            return Promise.resolve(entities)
+    return DeviceLoader()
+
+class PositionLoader(DataLoader):
+    def batch_load_fn(self, keys):
+        class pos(object):
+            def __init__(self, id):
+                self.id = id
+        return Promise.resolve([pos(id=x) for x in keys])
+position_loader = PositionLoader()

@@ -34,7 +34,10 @@ def request2object(res, type='GenericType'):
     except ValueError as e:
         raise GraphQLError(res.text)
 
-def _to_camels(key):
+def dict2object(d, type='GenericType'):
+    return _object_hook(type)(d)
+
+def camelify(key):
     words = key.split('_')
     return words[0] + ''.join(x.title() for x in words[1:])
 
@@ -51,7 +54,7 @@ def camelify_keys(d):
     camelized = {}
     if isinstance(d, dict):
         for k, v in d.items():
-            camelized[_to_camels(k)] = camelify_keys(v)
+            camelized[camelify(k)] = camelify_keys(v)
     elif isinstance(d, list):
         vlist = []
         for v in d:

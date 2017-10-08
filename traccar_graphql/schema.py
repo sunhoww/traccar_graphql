@@ -3,7 +3,8 @@ from flask_jwt_extended import get_jwt_claims
 from graphql import GraphQLError
 
 from traccar_graphql import models, mutations
-from traccar_graphql.loaders import group_loader, driver_loader, geofence_loader, notification_loader
+from traccar_graphql.loaders import (
+    group_loader, driver_loader, geofence_loader, notification_loader, device_loader)
 from traccar_graphql.utils import request2object, header_with_auth
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
@@ -79,6 +80,19 @@ class Query(graphene.ObjectType):
             "{}/api/users/notifications".format(TRACCAR_BACKEND),
             headers=header_with_auth())
         return request2object(r, 'NotificationTypeType')
+
+    device = graphene.Field(lambda: models.DeviceType, id=graphene.Int(), unique_id=graphene.String())
+    def resolve_device(self, args, context, info):
+        if args.get('id'):
+            return device_loader('id').load(args.get('id'))
+        return device_loader('unique_id').load(args.get('unique_id'))
+
+    all_devices = graphene.List(lambda: models.DeviceType)
+    def resolve_all_devices(self, args, context, info):
+        r = requests.get(
+            "{}/api/devices".format(TRACCAR_BACKEND),
+            headers=header_with_auth())
+        return request2object(r, 'DeviceType')
 
 
 class Mutation(graphene.ObjectType):

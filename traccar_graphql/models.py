@@ -1,8 +1,8 @@
 import requests
 from graphene import Interface, ObjectType, String, Boolean, Int, Float, Field, List
-from graphene.types.datetime import DateTime
 
-from traccar_graphql.loaders import group_loader, user_loader
+from traccar_graphql.types import DateTime
+from traccar_graphql.loaders import group_loader, user_loader, geofence_loader, position_loader
 
 class SettingsType(Interface):
     id = Int()
@@ -86,3 +86,28 @@ class NotificationType(ObjectType):
 
     def resolve_user(self, args, context, info):
         return user_loader.load(self.user_id)
+
+class DeviceType(ObjectType):
+    id = Int()
+    name = String()
+    unique_id = String()
+    status = String()
+    last_update = Field(lambda: DateTime)
+    position = Field(lambda: PositionType)
+    group = Field(lambda: GroupType)
+    phone = String()
+    model = String()
+    contact = String()
+    category = String()
+    geofences = List(lambda: GeofenceType)
+
+    def resolve_position(self, args, context, info):
+        return position_loader.load(self.position_id)
+    def resolve_group(self, args, context, info):
+        return group_loader.load(self.group_id)
+    def resolve_geofences(self, args, context, info):
+        return geofence_loader.load_many(self.geofence_ids)
+
+
+class PositionType(ObjectType):
+    id = Int()
