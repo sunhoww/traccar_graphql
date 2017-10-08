@@ -1,9 +1,10 @@
 import os, requests, datetime
 from graphene import Mutation, InputObjectType, String, Field, Int, Argument
 from graphql import GraphQLError
+from flask_jwt_extended import get_raw_jwt
 
 from traccar_graphql import models
-from traccar_graphql.utils import request2object, camelify_keys, header_with_auth
+from traccar_graphql.utils import request2object, camelify_keys, blacklist_token, header_with_auth
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
 
@@ -37,6 +38,14 @@ class LoginType(Mutation):
         # TODO: remove expires_delta
         access_token = create_access_token(identity=identity, expires_delta=datetime.timedelta(days=7))
         return LoginType(access_token=access_token)
+
+class LogoutType(Mutation):
+    access_token = String()
+
+    def mutate(self, input, context, info):
+        r = requests.delete("{}/api/session".format(TRACCAR_BACKEND), headers=header_with_auth())
+        blacklist_token(get_raw_jwt()['jti'])
+        return LogoutType(access_token=None)
 
 class RegisterType(Mutation):
     class Input:

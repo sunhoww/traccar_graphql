@@ -78,12 +78,12 @@ class Query(graphene.ObjectType):
         r = requests.get(
             "{}/api/users/notifications".format(TRACCAR_BACKEND),
             headers=header_with_auth())
-        print(r.text)
         return request2object(r, 'NotificationTypeType')
 
 
 class Mutation(graphene.ObjectType):
     login = mutations.LoginType.Field()
+    logout = mutations.LogoutType.Field()
     register = mutations.RegisterType.Field()
     create_group = mutations.CreateGroupType.Field()
     update_group = mutations.UpdateGroupType.Field()

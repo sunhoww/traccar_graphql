@@ -5,12 +5,15 @@ from flask_jwt_extended import JWTManager, jwt_optional
 from graphql import GraphQLError
 
 from traccar_graphql.schema import schema
+from traccar_graphql.utils import get_blacklisted_tokens
 
 __version__ = '0.0.1'
 
 app = Flask(__name__)
 
 app.secret_key = os.environ.get('JWT_SECRET')
+app.config['JWT_BLACKLIST_ENABLED'] = True
+app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
 
 jwt = JWTManager(app)
 
@@ -33,6 +36,11 @@ def handle_expired_token_error():
 @jwt.invalid_token_loader
 def handle_invalid_token_error(msg):
     return jsonify({ 'errors': [{ 'message': msg }] })
+
+@jwt.token_in_blacklist_loader
+def check_if_token_in_blacklist(decrypted_token):
+    jti = decrypted_token['jti']
+    return jti in get_blacklisted_tokens()
 
 view_func = GraphQLView.as_view(
     'graphql',
