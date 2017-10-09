@@ -1,5 +1,5 @@
 import os, requests, datetime
-from graphene import Mutation, InputObjectType, String, Field, Int, Argument
+from graphene import Mutation, InputObjectType, String, Int, Argument, Field, List
 from graphql import GraphQLError
 from flask_jwt_extended import get_raw_jwt
 
@@ -295,3 +295,54 @@ class DisableSmsNotificationType(Mutation):
         input = Argument(lambda: NotificationInput)
     notification = Field(lambda: models.NotificationType)
     mutate = _mutate_notification('sms', False)
+
+class DeviceInput(InputObjectType):
+    name = String()
+    unique_id = String()
+    group_id = Int()
+    # disabled for now
+    # phone = String()
+    model = String()
+    contact = String()
+    category = String()
+    geofence_ids = List(Int)
+
+class CreateDeviceType(Mutation):
+    class Input:
+        input = Argument(lambda: DeviceInput)
+
+    device = Field(lambda: models.DeviceType)
+
+    def mutate(self, args, context, info):
+        r = requests.post(
+            "{}/api/devices".format(TRACCAR_BACKEND),
+            headers=header_with_auth(),
+            json=camelify_keys(args.get('input')))
+        return CreateDeviceType(device=request2object(r, 'DeviceType'))
+
+class UpdateDeviceType(Mutation):
+    class Input:
+        id = Int(required=True)
+        input = Argument(lambda: DeviceInput)
+
+    device = Field(lambda: models.DeviceType)
+
+    def mutate(self, args, context, info):
+        patch = camelify_keys(args.get('input'))
+        patch['id'] = args.get('id')
+        r = requests.put(
+            "{}/api/devices/{}".format(TRACCAR_BACKEND, patch['id']),
+            headers=header_with_auth(),
+            json=patch)
+        return UpdateDeviceType(device=request2object(r, 'DeviceType'))
+
+class DeleteDeviceType(Mutation):
+    class Input:
+        id = Int(required=True)
+
+    id = Int()
+    def mutate(self, args, context, info):
+        r = requests.delete(
+            "{}/api/devices/{}".format(TRACCAR_BACKEND, args.get('id')),
+            headers=header_with_auth())
+        return DeleteDeviceType(id=args.get('id'))

@@ -117,5 +117,8 @@ class Mutation(graphene.ObjectType):
     disable_email_notification = mutations.DisableEmailNotificationType.Field()
     enable_sms_notification = mutations.EnableSmsNotificationType.Field()
     disable_sms_notification = mutations.DisableSmsNotificationType.Field()
+    create_device = mutations.CreateDeviceType.Field()
+    update_device = mutations.UpdateDeviceType.Field()
+    delete_device = mutations.DeleteDeviceType.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
