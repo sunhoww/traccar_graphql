@@ -111,3 +111,21 @@ class DeviceType(ObjectType):
 
 class PositionType(ObjectType):
     id = Int()
+    device = Field(lambda: DeviceType)
+    protocol = String()
+    device_time = DateTime()
+    fix_time = DateTime()
+    server_time = String()
+    outdated = Boolean()
+    valid = Boolean()
+    latitude = Float()
+    longitude = Float()
+    altitude = Float()
+    speed = Float(description="in knots")
+    course = Float()
+    address = String()
+    accuracy = Float()
+    network = String()
+
+    def resolve_device(self, args, context, info):
+        return device_loader('id').load(self.device_id)

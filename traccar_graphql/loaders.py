@@ -80,8 +80,10 @@ def device_loader(entity):
 
 class PositionLoader(DataLoader):
     def batch_load_fn(self, keys):
-        class pos(object):
-            def __init__(self, id):
-                self.id = id
-        return Promise.resolve([pos(id=x) for x in keys])
+        r = requests.get(
+            "{}/api/positions".format(TRACCAR_BACKEND),
+            params={ 'id': keys },
+            headers=header_with_auth())
+        entities = [next((x for x in request2object(r, 'PositionType') if x.id == key), None) for key in keys]
+        return Promise.resolve(entities)
 position_loader = PositionLoader()

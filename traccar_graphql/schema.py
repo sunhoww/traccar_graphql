@@ -4,7 +4,8 @@ from graphql import GraphQLError
 
 from traccar_graphql import models, mutations
 from traccar_graphql.loaders import (
-    group_loader, driver_loader, geofence_loader, notification_loader, device_loader)
+    group_loader, driver_loader, geofence_loader, notification_loader,
+    device_loader, position_loader)
 from traccar_graphql.utils import request2object, header_with_auth
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
@@ -93,6 +94,10 @@ class Query(graphene.ObjectType):
             "{}/api/devices".format(TRACCAR_BACKEND),
             headers=header_with_auth())
         return request2object(r, 'DeviceType')
+
+    position = graphene.Field(lambda: models.PositionType, id=graphene.Int())
+    def resolve_position(self, args, context, info):
+        return position_loader.load(args.get('id'))
 
 
 class Mutation(graphene.ObjectType):
