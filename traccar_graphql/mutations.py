@@ -38,7 +38,7 @@ class LoginType(Mutation):
         identity = _Indentity(
             id=data['id'],
             email=data['email'],
-            admin=data['admin'],
+            admin=data['administrator'],
             session=r.headers['Set-Cookie'])
 
         # TODO: remove expires_delta
