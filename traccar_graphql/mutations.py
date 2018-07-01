@@ -1,12 +1,17 @@
-import os, requests, datetime
-from graphene import Mutation, InputObjectType, String, Int, Argument, Field, List
+import os
+import requests
+import datetime
+from graphene import (
+    Mutation, InputObjectType, String, Int, Argument, Field, List)
 from graphql import GraphQLError
-from flask_jwt_extended import get_raw_jwt
+from flask_jwt_extended import get_raw_jwt, create_access_token
 
 from traccar_graphql import models
-from traccar_graphql.utils import request2object, camelify_keys, blacklist_token, header_with_auth
+from traccar_graphql.utils import (
+    request2object, camelify_keys, blacklist_token, header_with_auth)
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
+
 
 class _Indentity():
     def __init__(self, id, email=None, admin=False, session=None):
@@ -14,6 +19,7 @@ class _Indentity():
         self.email = email
         self.admin = admin
         self.session = session
+
 
 class LoginType(Mutation):
     class Input:
@@ -23,8 +29,8 @@ class LoginType(Mutation):
     access_token = String()
 
     def mutate(self, input, context, info):
-        email = input.get('email')
-        password = input.get('password')
+        # email = input.get('email')
+        # password = input.get('password')
         r = requests.post("{}/api/session".format(TRACCAR_BACKEND), data=input)
         if (r.status_code == 401):
             raise GraphQLError('Invalid credentials')
@@ -36,16 +42,21 @@ class LoginType(Mutation):
             session=r.headers['Set-Cookie'])
 
         # TODO: remove expires_delta
-        access_token = create_access_token(identity=identity, expires_delta=datetime.timedelta(days=7))
+        access_token = create_access_token(
+            identity=identity, expires_delta=datetime.timedelta(days=7))
         return LoginType(access_token=access_token)
+
 
 class LogoutType(Mutation):
     access_token = String()
 
     def mutate(self, input, context, info):
-        r = requests.delete("{}/api/session".format(TRACCAR_BACKEND), headers=header_with_auth())
+        requests.delete(
+            "{}/api/session".format(TRACCAR_BACKEND),
+            headers=header_with_auth())
         blacklist_token(get_raw_jwt()['jti'])
         return LogoutType(access_token=None)
+
 
 class RegisterType(Mutation):
     class Input:
@@ -66,6 +77,7 @@ class GroupInput(InputObjectType):
     name = String()
     group_id = Int()
 
+
 class CreateGroupType(Mutation):
     class Input:
         input = Argument(lambda: GroupInput)
@@ -78,6 +90,7 @@ class CreateGroupType(Mutation):
             headers=header_with_auth(),
             json=camelify_keys(args.get('input')))
         return CreateGroupType(group=request2object(r, 'GroupType'))
+
 
 class UpdateGroupType(Mutation):
     class Input:
@@ -95,20 +108,24 @@ class UpdateGroupType(Mutation):
             json=patch)
         return UpdateGroupType(group=request2object(r, 'GroupType'))
 
+
 class DeleteGroupType(Mutation):
     class Input:
         id = Int(required=True)
 
     id = Int()
+
     def mutate(self, args, context, info):
-        r = requests.delete(
+        requests.delete(
             "{}/api/groups/{}".format(TRACCAR_BACKEND, args.get('id')),
             headers=header_with_auth())
         return DeleteGroupType(id=args.get('id'))
 
+
 class DriverInput(InputObjectType):
     name = String()
     unique_id = String()
+
 
 class CreateDriverType(Mutation):
     class Input:
@@ -122,6 +139,7 @@ class CreateDriverType(Mutation):
             headers=header_with_auth(),
             json=camelify_keys(args.get('input')))
         return CreateDriverType(driver=request2object(r, 'DriverType'))
+
 
 class UpdateDriverType(Mutation):
     class Input:
@@ -139,22 +157,26 @@ class UpdateDriverType(Mutation):
             json=patch)
         return UpdateDriverType(driver=request2object(r, 'DriverType'))
 
+
 class DeleteDriverType(Mutation):
     class Input:
         id = Int(required=True)
 
     id = Int()
+
     def mutate(self, args, context, info):
-        r = requests.delete(
+        requests.delete(
             "{}/api/drivers/{}".format(TRACCAR_BACKEND, args.get('id')),
             headers=header_with_auth())
         return DeleteDriverType(id=args.get('id'))
+
 
 class GeofenceInput(InputObjectType):
     name = String()
     description = String()
     area = String()
     calendar_id = Int()
+
 
 class CreateGeofenceType(Mutation):
     class Input:
@@ -168,6 +190,7 @@ class CreateGeofenceType(Mutation):
             headers=header_with_auth(),
             json=camelify_keys(args.get('input')))
         return CreateGeofenceType(geofence=request2object(r, 'GeofenceType'))
+
 
 class UpdateGeofenceType(Mutation):
     class Input:
@@ -185,22 +208,26 @@ class UpdateGeofenceType(Mutation):
             json=patch)
         return UpdateGeofenceType(geofence=request2object(r, 'GeofenceType'))
 
+
 class DeleteGeofenceType(Mutation):
     class Input:
         id = Int(required=True)
 
     id = Int()
+
     def mutate(self, args, context, info):
-        r = requests.delete(
+        requests.delete(
             "{}/api/geofences/{}".format(TRACCAR_BACKEND, args.get('id')),
             headers=header_with_auth())
         return DeleteGeofenceType(id=args.get('id'))
+
 
 class CalendarInput(InputObjectType):
     name = String()
     description = String()
     area = String()
     calendar_id = Int()
+
 
 class CreateCalendarType(Mutation):
     class Input:
@@ -214,6 +241,7 @@ class CreateCalendarType(Mutation):
             headers=header_with_auth(),
             json=camelify_keys(args.get('input')))
         return CreateCalendarType(calendar=request2object(r, 'CalendarType'))
+
 
 class UpdateCalendarType(Mutation):
     class Input:
@@ -231,25 +259,30 @@ class UpdateCalendarType(Mutation):
             json=patch)
         return UpdateCalendarType(calendar=request2object(r, 'CalendarType'))
 
+
 class DeleteCalendarType(Mutation):
     class Input:
         id = Int(required=True)
 
     id = Int()
+
     def mutate(self, args, context, info):
-        r = requests.delete(
+        requests.delete(
             "{}/api/calendars/{}".format(TRACCAR_BACKEND, args.get('id')),
             headers=header_with_auth())
         return DeleteCalendarType(id=args.get('id'))
+
 
 class NotificationInput(InputObjectType):
     type = String()
     user_id = Int()
 
+
 def _mutate_notification(service, state):
     class holder_class(object):
         def __init__(self, notification):
             self.notification = notification
+
     def fn(self, args, context, info):
         patch = camelify_keys(args.get('input'))
         patch[service] = state
@@ -260,11 +293,13 @@ def _mutate_notification(service, state):
         return holder_class(notification=request2object(r, 'NotificationType'))
     return fn
 
+
 class EnableWebNotificationType(Mutation):
     class Input:
         input = Argument(lambda: NotificationInput)
     notification = Field(lambda: models.NotificationType)
     mutate = _mutate_notification('web', True)
+
 
 class DisableWebNotificationType(Mutation):
     class Input:
@@ -272,11 +307,13 @@ class DisableWebNotificationType(Mutation):
     notification = Field(lambda: models.NotificationType)
     mutate = _mutate_notification('web', False)
 
+
 class EnableEmailNotificationType(Mutation):
     class Input:
         input = Argument(lambda: NotificationInput)
     notification = Field(lambda: models.NotificationType)
     mutate = _mutate_notification('mail', True)
+
 
 class DisableEmailNotificationType(Mutation):
     class Input:
@@ -284,17 +321,20 @@ class DisableEmailNotificationType(Mutation):
     notification = Field(lambda: models.NotificationType)
     mutate = _mutate_notification('mail', False)
 
+
 class EnableSmsNotificationType(Mutation):
     class Input:
         input = Argument(lambda: NotificationInput)
     notification = Field(lambda: models.NotificationType)
     mutate = _mutate_notification('sms', True)
 
+
 class DisableSmsNotificationType(Mutation):
     class Input:
         input = Argument(lambda: NotificationInput)
     notification = Field(lambda: models.NotificationType)
     mutate = _mutate_notification('sms', False)
+
 
 class DeviceInput(InputObjectType):
     name = String()
@@ -306,6 +346,7 @@ class DeviceInput(InputObjectType):
     contact = String()
     category = String()
     geofence_ids = List(Int)
+
 
 class CreateDeviceType(Mutation):
     class Input:
@@ -319,6 +360,7 @@ class CreateDeviceType(Mutation):
             headers=header_with_auth(),
             json=camelify_keys(args.get('input')))
         return CreateDeviceType(device=request2object(r, 'DeviceType'))
+
 
 class UpdateDeviceType(Mutation):
     class Input:
@@ -336,13 +378,15 @@ class UpdateDeviceType(Mutation):
             json=patch)
         return UpdateDeviceType(device=request2object(r, 'DeviceType'))
 
+
 class DeleteDeviceType(Mutation):
     class Input:
         id = Int(required=True)
 
     id = Int()
+
     def mutate(self, args, context, info):
-        r = requests.delete(
+        requests.delete(
             "{}/api/devices/{}".format(TRACCAR_BACKEND, args.get('id')),
             headers=header_with_auth())
         return DeleteDeviceType(id=args.get('id'))

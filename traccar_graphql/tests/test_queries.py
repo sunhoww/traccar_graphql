@@ -2,6 +2,7 @@ from graphene.test import Client
 
 from traccar_graphql.schema import schema
 
+
 def test_query_server(snapshot):
     """Testing query for server"""
     client = Client(schema)
@@ -25,6 +26,7 @@ def test_query_server(snapshot):
         bingKey
         limitCommands
         } }'''))
+
 
 def test_query_me(snapshot):
     """Testing query for me"""

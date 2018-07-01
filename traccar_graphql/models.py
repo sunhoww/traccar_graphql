@@ -1,8 +1,10 @@
-import requests
-from graphene import Interface, ObjectType, String, Boolean, Int, Float, Field, List
+from graphene import (
+    Interface, ObjectType, String, Boolean, Int, Float, Field, List)
 
 from traccar_graphql.types import DateTime
-from traccar_graphql.loaders import group_loader, user_loader, geofence_loader, position_loader
+from traccar_graphql.loaders import (
+    device_loader, group_loader, user_loader, geofence_loader, position_loader)
+
 
 class SettingsType(Interface):
     id = Int()
@@ -18,6 +20,7 @@ class SettingsType(Interface):
     twelve_hour_format = Boolean()
     coordinate_format = String()
 
+
 class ServerType(ObjectType):
     class Meta:
         interfaces = (SettingsType, )
@@ -28,6 +31,7 @@ class ServerType(ObjectType):
     force_settings = Boolean()
     bing_key = String()
     limit_commands = Boolean()
+
 
 class UserType(ObjectType):
     class Meta:
@@ -44,6 +48,7 @@ class UserType(ObjectType):
     expiration_time = DateTime()
     token = String()
 
+
 class GroupType(ObjectType):
     id = Int()
     name = String()
@@ -52,10 +57,12 @@ class GroupType(ObjectType):
     def resolve_parent_group(self, args, context, info):
         return group_loader.load(self.group_id)
 
+
 class DriverType(ObjectType):
     id = Int()
     name = String()
     unique_id = String()
+
 
 class GeofenceType(ObjectType):
     id = Int()
@@ -67,14 +74,17 @@ class GeofenceType(ObjectType):
     def resolve_calendar(self, args, context, info):
         return self.calendar_id
 
+
 class CalendarType(ObjectType):
     id = Int()
     name = String()
     data = String()
 
+
 class NotificationTypeType(ObjectType):
     id = Int()
     type = String()
+
 
 class NotificationType(ObjectType):
     id = Int()
@@ -86,6 +96,7 @@ class NotificationType(ObjectType):
 
     def resolve_user(self, args, context, info):
         return user_loader.load(self.user_id)
+
 
 class DeviceType(ObjectType):
     id = Int()
@@ -103,8 +114,10 @@ class DeviceType(ObjectType):
 
     def resolve_position(self, args, context, info):
         return position_loader.load(self.position_id)
+
     def resolve_group(self, args, context, info):
         return group_loader.load(self.group_id)
+
     def resolve_geofences(self, args, context, info):
         return geofence_loader.load_many(self.geofence_ids)
 

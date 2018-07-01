@@ -17,6 +17,7 @@ app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
 
 jwt = JWTManager(app)
 
+
 @jwt.user_claims_loader
 def add_claims_to_access_token(identity):
     return {
@@ -25,22 +26,27 @@ def add_claims_to_access_token(identity):
         'session': identity.session,
     }
 
+
 @jwt.user_identity_loader
 def make_identity_for_access_token(identity):
     return identity.email
 
+
 @jwt.expired_token_loader
 def handle_expired_token_error():
-    return jsonify({ 'errors': [{ 'message': "Token has expired" }] })
+    return jsonify({'errors': [{'message': "Token has expired"}]})
+
 
 @jwt.invalid_token_loader
 def handle_invalid_token_error(msg):
-    return jsonify({ 'errors': [{ 'message': msg }] })
+    return jsonify({'errors': [{'message': msg}]})
+
 
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     jti = decrypted_token['jti']
     return jti in get_blacklisted_tokens()
+
 
 view_func = GraphQLView.as_view(
     'graphql',

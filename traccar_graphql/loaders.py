@@ -1,54 +1,76 @@
-import os, requests
+import os
+import requests
 from promise import Promise
 from promise.dataloader import DataLoader
-from flask_jwt_extended import get_jwt_claims
-from graphql import GraphQLError
 
 from traccar_graphql.utils import (
-    request2object, dict2object, camelify, camelify_keys, header_with_auth, current_user_id)
+    request2object, dict2object, camelify, header_with_auth, current_user_id)
 
 TRACCAR_BACKEND = os.environ.get('TRACCAR_BACKEND')
+
 
 def _batch_array(endpoint='', cls_name='GenericType'):
     def fn(self, keys):
         r = requests.get(
             "{}/api/{}".format(TRACCAR_BACKEND, endpoint),
             headers=header_with_auth())
-        entities = [next((x for x in request2object(r, cls_name) if x.id == key), None) for key in keys]
+        entities = [
+            next(
+                (x for x in request2object(r, cls_name) if x.id == key), None
+            ) for key in keys]
         return Promise.resolve(entities)
     return fn
 
+
 class GroupLoader(DataLoader):
     batch_load_fn = _batch_array(endpoint='groups', cls_name='GroupType')
+
+
 group_loader = GroupLoader()
+
 
 class DriverLoader(DataLoader):
     batch_load_fn = _batch_array(endpoint='drivers', cls_name='DriverType')
+
+
 driver_loader = DriverLoader()
+
 
 class GeofenceLoader(DataLoader):
     batch_load_fn = _batch_array(endpoint='geofences', cls_name='GeofenceType')
+
+
 geofence_loader = GeofenceLoader()
+
 
 class CalendarLoader(DataLoader):
     batch_load_fn = _batch_array(endpoint='calendars', cls_name='CalendarType')
+
+
 calendar_loader = CalendarLoader()
+
 
 class NotificationLoader(DataLoader):
     def batch_load_fn(self, keys):
         r = requests.get(
             "{}/api/users/notifications".format(TRACCAR_BACKEND),
             headers=header_with_auth())
-        entities = [next((x for x in request2object(r, 'NotificationType') if x.type == key), None) for key in keys]
+        entities = [next(
+            (x for x in request2object(r, 'NotificationType')
+                if x.type == key), None) for key in keys]
         return Promise.resolve(entities)
+
+
 notification_loader = NotificationLoader()
+
 
 def _fetch_user(user_id):
     url = "{}/api/users".format(TRACCAR_BACKEND)
-    params={ 'userId': user_id }
+    params = {'userId': user_id}
     if user_id == current_user_id():
         url = "{}/api/session".format(TRACCAR_BACKEND)
         params = None
+
     def fn(resolve, reject):
         try:
             r = requests.get(url, params=params, headers=header_with_auth())
@@ -58,32 +80,45 @@ def _fetch_user(user_id):
         except Exception as e:
             reject(e)
     return fn
+
+
 class UserLoader(DataLoader):
     def batch_load_fn(self, keys):
         entities = [Promise(_fetch_user(key)) for key in keys]
         return Promise.all(entities)
+
+
 user_loader = UserLoader()
+
 
 def device_loader(entity):
     assert entity in ['id', 'unique_id']
+
     class DeviceLoader(DataLoader):
         def batch_load_fn(self, keys):
-            params={ camelify(entity): keys }
+            params = {camelify(entity): keys}
             r = requests.get(
                 "{}/api/devices".format(TRACCAR_BACKEND),
                 params=params,
                 headers=header_with_auth())
 
-            entities = [next((dict2object(x) for x in r.json() if x[camelify(entity)] == key), None) for key in keys]
+            entities = [next(
+                (dict2object(x) for x in r.json()
+                    if x[camelify(entity)] == key), None) for key in keys]
             return Promise.resolve(entities)
     return DeviceLoader()
+
 
 class PositionLoader(DataLoader):
     def batch_load_fn(self, keys):
         r = requests.get(
             "{}/api/positions".format(TRACCAR_BACKEND),
-            params={ 'id': keys },
+            params={'id': keys},
             headers=header_with_auth())
-        entities = [next((x for x in request2object(r, 'PositionType') if x.id == key), None) for key in keys]
+        entities = [next(
+            (x for x in request2object(r, 'PositionType')
+                if x.id == key), None) for key in keys]
         return Promise.resolve(entities)
+
+
 position_loader = PositionLoader()

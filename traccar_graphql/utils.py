@@ -1,19 +1,24 @@
-import json, re
+import json
+import re
 from graphql import GraphQLError
+from flask_jwt_extended import get_jwt_claims
 
 from collections import namedtuple
 
 _first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 _all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
+
 def _to_snakes(key):
     s1 = _first_cap_re.sub(r'\1_\2', key)
     return _all_cap_re.sub(r'\1_\2', s1).lower()
+
 
 def _object_hook(type):
     def hook(d):
         return namedtuple(type, map(_to_snakes, d.keys()))(*d.values())
     return hook
+
 
 def request2object(res, type='GenericType'):
     """ This func takes converts the dict from res.json() to an object
@@ -34,12 +39,15 @@ def request2object(res, type='GenericType'):
     except ValueError as e:
         raise GraphQLError(res.text)
 
+
 def dict2object(d, type='GenericType'):
     return _object_hook(type)(d)
+
 
 def camelify(key):
     words = key.split('_')
     return words[0] + ''.join(x.title() for x in words[1:])
+
 
 def camelify_keys(d):
     """ Converts snake_cased keys of a dict to camelCased ones
@@ -68,8 +76,6 @@ def camelify_keys(d):
     return camelized
 
 
-from flask_jwt_extended import get_jwt_claims
-
 def header_with_auth():
     """ Generates a request header dict with a session cookie to be consumed
     by the backend
@@ -80,7 +86,8 @@ def header_with_auth():
     claims = get_jwt_claims()
     if 'session' not in claims:
         raise GraphQLError('Authentication required')
-    return { 'Cookie': claims['session'] }
+    return {'Cookie': claims['session']}
+
 
 def current_user_id():
     """ Generates the user_id of the current user
@@ -93,9 +100,11 @@ def current_user_id():
         raise GraphQLError('Authentication required')
     return claims['id']
 
+
 # TODO: Using an in-memory implementaion for now. Change to a more persistent
 # storage
 _blacklist = set()
+
 
 def blacklist_token(jti):
     """ Generates a list of revoked and blacklisted tokens
@@ -104,6 +113,7 @@ def blacklist_token(jti):
         A list of blacklisted `jti`
     """
     _blacklist.add(jti)
+
 
 def get_blacklisted_tokens():
     """ Generates a list of revoked and blacklisted tokens
