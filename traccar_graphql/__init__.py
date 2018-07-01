@@ -1,13 +1,14 @@
 import os
+import logging
 from flask import Flask, jsonify
 from flask_graphql import GraphQLView
 from flask_jwt_extended import JWTManager, jwt_optional
-from graphql import GraphQLError
 
 from traccar_graphql.schema import schema
 from traccar_graphql.utils import get_blacklisted_tokens
 
 __version__ = '0.0.1'
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -57,4 +58,4 @@ view_func = GraphQLView.as_view(
 app.add_url_rule('/graphql', view_func=jwt_optional(view_func))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True, port=4000)
