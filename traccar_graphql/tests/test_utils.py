@@ -1,9 +1,7 @@
-import unittest
-
 from traccar_graphql.utils import camelify_keys
 
 
-class TestUtilsCamelifyKeys(unittest.TestCase):
+class TestUtilsCamelifyKeys:
     def test_flat_dict(self):
         assert camelify_keys({
             'first_name': "Tony", 'last_name': "Stark"

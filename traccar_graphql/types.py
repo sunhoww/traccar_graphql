@@ -1,4 +1,4 @@
-import iso8601
+import aniso8601
 from graphene.types import datetime
 
 
@@ -8,5 +8,5 @@ class DateTime(datetime.DateTime):
     @staticmethod
     def serialize(dt):
         if isinstance(dt, str):
-            dt = iso8601.parse_date(dt)
+            dt = aniso8601.parse_date(dt)
         return datetime.DateTime.serialize(dt)
