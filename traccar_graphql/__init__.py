@@ -3,9 +3,14 @@ import logging
 from flask import Flask, jsonify
 from flask_graphql import GraphQLView
 from flask_jwt_extended import JWTManager, jwt_optional
+from time import time as timer
 
 from traccar_graphql.schema import schema
 from traccar_graphql.utils import get_blacklisted_tokens
+
+if os.environ.get('FLASK_ENV') == 'development':
+    import logging.config
+    logging.config.fileConfig('logging.conf')
 
 __version__ = '0.0.1'
 logger = logging.getLogger(__name__)
@@ -49,10 +54,23 @@ def check_if_token_in_blacklist(decrypted_token):
     return jti in get_blacklisted_tokens()
 
 
+def timing_middleware(next, root, info, **args):
+    start = timer()
+    return_value = next(root, info, **args)
+    duration = timer() - start
+    logger.debug("{parent_type}.{field_name}: {duration} ms".format(
+        parent_type=info.parent_type,
+        field_name=info.field_name,
+        duration=round(duration * 1000, 2)
+    ))
+    return return_value
+
+
 view_func = GraphQLView.as_view(
     'graphql',
     schema=schema,
     graphiql=True,
+    middleware=[timing_middleware],
 )
 
 app.add_url_rule('/graphql', view_func=jwt_optional(view_func))
