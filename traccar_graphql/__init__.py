@@ -76,4 +76,7 @@ view_func = GraphQLView.as_view(
 app.add_url_rule('/graphql', view_func=jwt_optional(view_func))
 
 if __name__ == '__main__':
-    app.run(debug=True, port=4000)
+    if os.environ.get('FLASK_ENV') == 'development':
+        app.run(debug=True, port=4000)
+    else:
+        app.run()
