@@ -1,16 +1,20 @@
-FROM python:2.7-alpine
+FROM python:3.6-alpine
 
 MAINTAINER Sun Howwrongbum <sun@libermatic.com>
 
 WORKDIR /app
 
-COPY ./requirements.txt /app/requirements.txt
-RUN pip install -r requirements.txt && pip install gunicorn
 
 COPY ./traccar_graphql /app/traccar_graphql
-COPY ./gunicorn.conf /gunicorn.conf
+COPY ./setup.py /app/setup.py
+RUN pip install --upgrade pip \
+  && pip install -e . \
+  && pip install gunicorn
+
+COPY ./config /config
 
 ENV PYTHONPATH /app
 
 EXPOSE 8080
-ENTRYPOINT ["/usr/local/bin/gunicorn", "--config", "/gunicorn.conf", "traccar_graphql:app"]
+ENTRYPOINT ["/usr/local/bin/gunicorn", "--config", "/config/gunicorn.conf"]
+CMD ["traccar_graphql:app"]

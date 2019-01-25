@@ -1,17 +1,18 @@
-from setuptools import setup
-from traccar_graphql import __version__
+from setuptools import find_packages, setup
+
+__version__ = "0.0.1"
 
 setup(
-    name='traccar_graphql',
+    name="traccar_graphql",
     version=__version__,
-    packages=['traccar_graphql'],
+    packages=find_packages(),
     include_package_data=True,
+    zip_safe=False,
     install_requires=[
-        'flask',
-        'graphene',
-        'flask_graphql',
-        'requests',
-        'flask-jwt-extended',
-        'iso8601'
+        "flask",
+        "graphene",
+        "flask_graphql",
+        "requests",
+        "flask-jwt-extended",
     ],
 )
