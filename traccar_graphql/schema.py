@@ -10,6 +10,7 @@ class Query(graphene.ObjectType):
 
 class Mutation(graphene.ObjectType):
     login = mutations.Login.Field()
+    logout = mutations.Logout.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

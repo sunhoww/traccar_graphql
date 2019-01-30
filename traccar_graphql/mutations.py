@@ -1,10 +1,10 @@
 import graphene
 from graphene import relay
 from graphql import GraphQLError
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import create_access_token, get_raw_jwt
 
 from traccar_graphql import models, api
-from traccar_graphql.utils import dict2object
+from traccar_graphql.utils import dict2object, blacklist_token
 
 
 class _Indentity:
@@ -21,7 +21,6 @@ class Login(relay.ClientIDMutation):
         password = graphene.String(required=True)
 
     access_token = graphene.String()
-    refresh_token = graphene.String()
     user = graphene.Field(models.User)
 
     @classmethod
@@ -43,6 +42,13 @@ class Login(relay.ClientIDMutation):
         )
         return Login(
             access_token=create_access_token(identity=identity),
-            refresh_token=create_refresh_token(identity=identity),
-            user=dict2object(data, models.UserType),
+            user=dict2object(data, models.User),
         )
+
+
+class Logout(relay.ClientIDMutation):
+    @classmethod
+    def mutate_and_get_payload(cls, root, info):
+        api.call("session", method="DELETE")
+        blacklist_token(get_raw_jwt()["jti"])
+        return Logout()
