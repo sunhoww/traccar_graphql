@@ -17,6 +17,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("JWT_SECRET", "dev"),
         TRACCAR_BACKEND=os.environ.get("TRACCAR_BACKEND"),
+        JWT_ACCESS_TOKEN_EXPIRES=False,
         JWT_BLACKLIST_ENABLED=True,
         JWT_BLACKLIST_TOKEN_CHECKS=["access", "refresh"],
     )
@@ -41,11 +42,9 @@ def create_app(test_config=None):
         return identity.email
 
     @jwt.expired_token_loader
-    def handle_expired_token_error():
-        return jsonify({"errors": [{"message": "Token has expired"}]})
-
     @jwt.invalid_token_loader
-    def handle_invalid_token_error(msg):
+    @jwt.revoked_token_loader
+    def handle_expired_token_error(msg="Token is not valid"):
         return jsonify({"errors": [{"message": msg}]})
 
     @jwt.token_in_blacklist_loader
@@ -59,7 +58,9 @@ def create_app(test_config=None):
             response.headers["Access-Control-Allow-Origin"] = os.environ.get(
                 "DEVELOPMENT_FRONTEND", "null"
             )
-            response.headers["Access-Control-Allow-Headers"] = "content-type"
+            response.headers["Access-Control-Allow-Headers"] = ",".join(
+                ["content-type", "authorization"]
+            )
         return response
 
     view_func = GraphQLView.as_view("graphql", schema=schema, graphiql=True)
