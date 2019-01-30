@@ -1,26 +1,30 @@
 import json
 import re
+from graphene import ObjectType
 from graphql import GraphQLError
 from flask_jwt_extended import get_jwt_claims
 
 from collections import namedtuple
 
-_first_cap_re = re.compile('(.)([A-Z][a-z]+)')
-_all_cap_re = re.compile('([a-z0-9])([A-Z])')
+_first_cap_re = re.compile("(.)([A-Z][a-z]+)")
+_all_cap_re = re.compile("([a-z0-9])([A-Z])")
 
 
 def _to_snakes(key):
-    s1 = _first_cap_re.sub(r'\1_\2', key)
-    return _all_cap_re.sub(r'\1_\2', s1).lower()
+    s1 = _first_cap_re.sub(r"\1_\2", key)
+    return _all_cap_re.sub(r"\1_\2", s1).lower()
 
 
 def _object_hook(type):
     def hook(d):
+        if not isinstance(type, str) and issubclass(type, ObjectType):
+            return type(**{field: d.get(field) for field in type._meta.fields.keys()})
         return namedtuple(type, map(_to_snakes, d.keys()))(*d.values())
+
     return hook
 
 
-def request2object(res, type='GenericType'):
+def request2object(res, type="GenericType"):
     """ This func takes converts the dict from res.json() to an object
     Also converts camelCase keys to snake_case fields
 
@@ -36,17 +40,17 @@ def request2object(res, type='GenericType'):
     """
     try:
         return json.loads(res.text, object_hook=_object_hook(type))
-    except ValueError as e:
+    except ValueError:
         raise GraphQLError(res.text)
 
 
-def dict2object(d, type='GenericType'):
+def dict2object(d, type="GenericType"):
     return _object_hook(type)(d)
 
 
 def camelify(key):
-    words = key.split('_')
-    return words[0] + ''.join(x.title() for x in words[1:])
+    words = key.split("_")
+    return words[0] + "".join(x.title() for x in words[1:])
 
 
 def camelify_keys(d):
@@ -84,9 +88,9 @@ def header_with_auth():
         A dict with key `Cookie` set to a value obtained from jwt claims
     """
     claims = get_jwt_claims()
-    if 'session' not in claims:
-        raise GraphQLError('Authentication required')
-    return {'Cookie': claims['session']}
+    if "session" not in claims:
+        raise GraphQLError("Authentication required")
+    return {"Cookie": claims["session"]}
 
 
 def current_user_id():
@@ -96,9 +100,9 @@ def current_user_id():
         An int set to a value obtained from jwt claims
     """
     claims = get_jwt_claims()
-    if 'id' not in claims:
-        raise GraphQLError('Authentication required')
-    return claims['id']
+    if "id" not in claims:
+        raise GraphQLError("Authentication required")
+    return claims["id"]
 
 
 # TODO: Using an in-memory implementaion for now. Change to a more persistent
