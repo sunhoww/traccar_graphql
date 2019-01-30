@@ -1,0 +1,28 @@
+version: "3.6"
+
+services:
+  graphql:
+    build: .
+    image: sunhoww/traccar_graphql:alpha
+    env_file:
+      - ./development.env
+    environment:
+      - FLASK_APP=traccar_graphql
+      - FLASK_ENV=development
+    volumes:
+      - ./traccar_graphql:/app/traccar_graphql
+      - ./tests:/app/tests
+      - ./env:/env
+    networks:
+      - web
+    entrypoint: ["flask", "run", "--host", "0.0.0.0", "--port", "8080"]
+    labels:
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:graphql.docker.localhost"
+      - "traefik.port=8080"
+
+
+networks:
+  web:
+    external: true
