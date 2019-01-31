@@ -53,3 +53,32 @@ class Logout(relay.ClientIDMutation):
         api.call("session", method="DELETE")
         blacklist_token(get_raw_jwt()["jti"])
         return Logout()
+
+
+class SignUp(relay.ClientIDMutation):
+    class Input:
+        email = graphene.String(required=True)
+        password = graphene.String(required=True)
+        name = graphene.String(required=True)
+
+    me = graphene.Field(user.User)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **args):
+        r = api.call("users", method="POST", auth=False, json=args)
+        if r.status_code == 401:
+            raise GraphQLError(exceptions.INVALID_CREDENTIALS)
+        if "Unique index or primary key violation" in r.text:
+            raise GraphQLError(exceptions.EMAIL_EXISTS)
+        data = r.json()
+        identity = _Indentity(
+            id=data["id"],
+            email=data["email"],
+            admin=data["administrator"],
+            session=r.headers["Set-Cookie"],
+        )
+        access_token = create_access_token(identity=identity)
+
+        # this sets the token in the request object. Used by GraphQLViewWithCookie
+        setattr(info.context, "jwt_access_token", access_token)
+        return SignUp(me=dict2object(data, user.User))
