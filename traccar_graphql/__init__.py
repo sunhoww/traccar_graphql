@@ -21,6 +21,7 @@ def create_app(test_config=None):
         JWT_ACCESS_TOKEN_EXPIRES=False,
         JWT_BLACKLIST_ENABLED=True,
         JWT_BLACKLIST_TOKEN_CHECKS=["access", "refresh"],
+        JWT_COOKIE_CSRF_PROTECT=False,
     )
 
     if test_config is None:
@@ -60,7 +61,7 @@ def create_app(test_config=None):
                 "DEVELOPMENT_FRONTEND", "null"
             )
             response.headers["Access-Control-Allow-Headers"] = ",".join(
-                ["Content-Type", "Set-Cookie"]
+                ["Content-Type", "Cookie"]
             )
             response.headers["Access-Control-Allow-Credentials"] = "true"
         return response
