@@ -3,7 +3,7 @@ from graphene import relay
 from graphql import GraphQLError
 from flask_jwt_extended import create_access_token, get_raw_jwt
 
-from traccar_graphql import api
+from traccar_graphql import api, exceptions
 from traccar_graphql.models import user
 from traccar_graphql.utils import dict2object, blacklist_token
 
@@ -21,7 +21,7 @@ class Login(relay.ClientIDMutation):
         email = graphene.String(required=True)
         password = graphene.String(required=True)
 
-    user = graphene.Field(user.User)
+    me = graphene.Field(user.User)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, email, password):
@@ -32,7 +32,7 @@ class Login(relay.ClientIDMutation):
             data={"email": email, "password": password},
         )
         if r.status_code == 401:
-            raise GraphQLError("Invalid credentials")
+            raise GraphQLError(exceptions.INVALID_CREDENTIALS)
         data = r.json()
         identity = _Indentity(
             id=data["id"],
@@ -44,7 +44,7 @@ class Login(relay.ClientIDMutation):
 
         # this sets the token in the request object. Used by GraphQLViewWithCookie
         setattr(info.context, "jwt_access_token", access_token)
-        return Login(user=dict2object(data, user.User))
+        return Login(me=dict2object(data, user.User))
 
 
 class Logout(relay.ClientIDMutation):

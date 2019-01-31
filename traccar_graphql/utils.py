@@ -3,8 +3,10 @@ import re
 from graphene import ObjectType
 from graphql import GraphQLError
 from flask_jwt_extended import get_jwt_claims
-
 from collections import namedtuple
+
+from traccar_graphql import exceptions
+
 
 _first_cap_re = re.compile("(.)([A-Z][a-z]+)")
 _all_cap_re = re.compile("([a-z0-9])([A-Z])")
@@ -89,7 +91,7 @@ def header_with_auth():
     """
     claims = get_jwt_claims()
     if "session" not in claims:
-        raise GraphQLError("Authentication required")
+        raise GraphQLError(exceptions.AUTHENTICATION_REQUIRED)
     return {"Cookie": claims["session"]}
 
 
@@ -101,7 +103,7 @@ def current_user_id():
     """
     claims = get_jwt_claims()
     if "id" not in claims:
-        raise GraphQLError("Authentication required")
+        raise GraphQLError(exceptions.AUTHENTICATION_REQUIRED)
     return claims["id"]
 
 
