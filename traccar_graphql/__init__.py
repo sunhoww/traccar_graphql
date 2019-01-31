@@ -1,5 +1,4 @@
 import os
-
 import logging
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager, jwt_optional
@@ -61,8 +60,9 @@ def create_app(test_config=None):
                 "DEVELOPMENT_FRONTEND", "null"
             )
             response.headers["Access-Control-Allow-Headers"] = ",".join(
-                ["content-type"]
+                ["Content-Type", "Set-Cookie"]
             )
+            response.headers["Access-Control-Allow-Credentials"] = "true"
         return response
 
     view_func = GraphQLView.as_view("graphql", schema=schema, graphiql=True)
