@@ -44,6 +44,10 @@ class Login(relay.ClientIDMutation):
             access_token=create_access_token(identity=identity),
             user=dict2object(data, models.User),
         )
+        access_token = create_access_token(identity=identity)
+
+        # this sets the token in the request object. Used by GraphQLViewWithCookie
+        setattr(info.context, "jwt_access_token", access_token)
 
 
 class Logout(relay.ClientIDMutation):

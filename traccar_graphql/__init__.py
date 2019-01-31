@@ -2,9 +2,9 @@ import os
 
 import logging
 from flask import Flask, jsonify
-from flask_graphql import GraphQLView
 from flask_jwt_extended import JWTManager, jwt_optional
 
+from traccar_graphql.view import GraphQLViewWithCookie as GraphQLView
 from traccar_graphql.schema import schema
 from traccar_graphql.utils import get_blacklisted_tokens
 
@@ -17,6 +17,8 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("JWT_SECRET", "dev"),
         TRACCAR_BACKEND=os.environ.get("TRACCAR_BACKEND"),
+        JWT_TOKEN_LOCATION=["cookies"],
+        JWT_COOKIE_SECURE=os.environ.get("FLASK_ENV") != "development",
         JWT_ACCESS_TOKEN_EXPIRES=False,
         JWT_BLACKLIST_ENABLED=True,
         JWT_BLACKLIST_TOKEN_CHECKS=["access", "refresh"],
@@ -59,7 +61,7 @@ def create_app(test_config=None):
                 "DEVELOPMENT_FRONTEND", "null"
             )
             response.headers["Access-Control-Allow-Headers"] = ",".join(
-                ["content-type", "authorization"]
+                ["content-type"]
             )
         return response
 
