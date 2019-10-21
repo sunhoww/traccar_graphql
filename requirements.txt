@@ -23,4 +23,4 @@ termcolor==1.1.0
 -e git+https://github.com/sunhoww/traccar_graphql.git@dd0f49f7f2e918b6035411508d633635959cf82b#egg=traccar_graphql
 typing==3.6.2
 urllib3==1.22
-Werkzeug==0.12.2
+Werkzeug==0.15.3
