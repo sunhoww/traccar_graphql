@@ -14,7 +14,7 @@ Jinja2==2.9.6
 MarkupSafe==1.0
 promise==2.0.2
 py==1.4.34
-PyJWT==1.5.3
+PyJWT==2.4.0
 pytest==3.2.3
 requests==2.18.4
 six==1.11.0
